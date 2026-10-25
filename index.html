@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Festa do Zoo</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="gate" class="gate" hidden>
+  <form id="gateForm" class="card gate-card">
+    <div class="gate-emoji">🦒</div>
+    <h1>Festa do Zoo</h1>
+    <p class="muted">Digite o código de acesso que veio no convite.</p>
+    <input id="codeInput" type="password" autocomplete="off" placeholder="Código de acesso" required>
+    <button class="btn" type="submit">Entrar</button>
+    <p id="gateMsg" class="err" role="alert"></p>
+  </form>
+</div>
+
+<div id="app" hidden>
+  <header class="top">
+    <div class="wrap top-in">
+      <strong class="brand">🦒 Festa do Zoo</strong>
+      <span id="demoBadge" class="badge warn" hidden>MODO DEMO</span>
+      <span class="spacer"></span>
+      <span id="roleBadge" class="badge" hidden></span>
+      <button id="orgBtn" class="btn ghost sm">Sou organizador</button>
+      <button id="logoutBtn" class="btn ghost sm">Sair</button>
+    </div>
+    <nav id="tabs" class="wrap tabs" aria-label="Seções"></nav>
+  </header>
+  <main id="view" class="wrap"></main>
+  <footer class="wrap muted foot">Os dados ficam numa planilha privada; esta página só os exibe.</footer>
+</div>
+
+<dialog id="dlg"><form method="dialog" id="dlgForm"></form></dialog>
+<div id="toast" class="toast" role="status"></div>
+<script src="config.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

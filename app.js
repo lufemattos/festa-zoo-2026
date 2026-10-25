@@ -22,6 +22,7 @@ const S = { code: store.get('festa.code') || '', pin: store.sget('festa.pin') ||
             token: store.get('festa.token') || (Math.random().toString(36).slice(2) + Date.now().toString(36)) };
 store.set('festa.token', S.token);
 
+const REF = 'ref. 2025';
 const WRITE_ROLES = { Convidados: ['lufe', 'vanessa', 'marina'], Acomodacoes: ['lufe', 'vanessa'], Cardapio: ['lufe'],
                       Fornecedores: ['lufe', 'vanessa'], Despesas: ['lufe', 'marina'] };
 const canWrite = sh => S.data && S.data.role && WRITE_ROLES[sh].indexOf(S.data.role) >= 0;
@@ -59,7 +60,7 @@ function totals() {
   const esperado = conf.reduce((a, g) => a + devido(g), 0);
   const pagos = conf.filter(g => g.pago === 'sim');
   const arrecadado = pagos.reduce((a, g) => a + (g.valor_pago !== '' && g.valor_pago != null ? num(g.valor_pago) : devido(g)), 0);
-  const custo = d.cardapio.reduce((a, i) => a + num(i.custo_estimado), 0) + d.fornecedores.reduce((a, f) => a + num(f.valor), 0);
+  const custo = d.cardapio.filter(i => i.status !== REF).reduce((a, i) => a + num(i.custo_estimado), 0) + d.fornecedores.reduce((a, f) => a + num(f.valor), 0);
   const criancas = conf.reduce((a, g) => a + num(g.criancas), 0);
   return { conf, esperado, pagos, arrecadado, custo, criancas, pendentes: d.convidados.filter(g => g.status === 'pendente').length };
 }
@@ -115,7 +116,7 @@ const VIEWS = {
 
   quemvai() {
     const g = S.data.convidados, by = s => g.filter(x => x.status === s);
-    const li = a => a.length ? a.map(x => `<li>${esc(x.nome)}${num(x.criancas) ? ` <span class="muted">(+${esc(x.criancas)} cças)</span>` : ''}</li>`).join('') : '<li class="muted">—</li>';
+    const li = a => a.length ? a.map(x => `<li>${esc(x.nome)}${x.grupo ? ` <span class="muted">· ${esc(x.grupo)}</span>` : ''}${num(x.criancas) ? ` <span class="muted">(+${esc(x.criancas)} cças)</span>` : ''}</li>`).join('') : '<li class="muted">—</li>';
     const add = S.data.role && canWrite('Convidados') && S.data.role !== 'marina' ? `<p><button class="btn sm" data-act="edit" data-sheet="Convidados">＋ Convidado</button></p>` : '';
     return `<section class="card"><h2>Quem vai</h2>${add}<div class="grid">
       <div><h3>✅ Confirmados (${by('confirmado').length})</h3><ul>${li(by('confirmado'))}</ul></div>
@@ -131,11 +132,15 @@ const VIEWS = {
   },
 
   comes() {
-    const items = S.data.cardapio, tot = items.reduce((a, i) => a + num(i.custo_estimado), 0), t = totals();
+    const all = S.data.cardapio, items = all.filter(i => i.status !== REF), ref = all.filter(i => i.status === REF);
+    const tot = items.reduce((a, i) => a + num(i.custo_estimado), 0), t = totals();
+    const refTot = ref.reduce((a, i) => a + num(i.custo_estimado), 0);
     const cats = {}; items.forEach(i => (cats[i.categoria || 'Outros'] = cats[i.categoria || 'Outros'] || []).push(i));
     const blocks = Object.keys(cats).map(c => tableCard(c, ['Item', 'Qtd.', 'Custo est.', 'Status'], cats[c].map(i => [i.id, [i.item, i.quantidade, money(i.custo_estimado), i.status]]), 'Cardapio')).join('');
-    return `<section class="card"><h2>Comes & Bebes</h2><div class="kpi">${money(tot)}<small>custo estimado dos itens${t.conf.length ? ' · ' + money(tot / t.conf.length) + ' por confirmado' : ''}</small></div>
-      ${canWrite('Cardapio') ? '<p><button class="btn sm" data-act="edit" data-sheet="Cardapio">＋ Item</button></p>' : ''}</section>${blocks || '<p class="muted">Lista ainda não preenchida pelo Lufe.</p>'}`;
+    const refBlock = ref.length ? tableCard('📜 Referência da festa de 2025 — valores antigos, só ponto de partida (não entram nos totais)', ['Item', 'Grupo', 'Custo em 2025'],
+      ref.map(i => [i.id, [i.item, String(i.categoria || '').replace('Ref. 2025 – ', ''), money(i.custo_estimado)]]), 'Cardapio', '') + `<p class="muted">Soma da referência 2025: ${money(refTot)}. Para usar um item em 2026, o Lufe edita e troca o status.</p>` : '';
+    return `<section class="card"><h2>Comes & Bebes</h2><div class="kpi">${money(tot)}<small>custo estimado dos itens de 2026${t.conf.length ? ' · ' + money(tot / t.conf.length) + ' por confirmado' : ''}</small></div>
+      ${canWrite('Cardapio') ? '<p><button class="btn sm" data-act="edit" data-sheet="Cardapio">＋ Item</button></p>' : ''}</section>${blocks || '<p class="card muted">A lista de 2026 ainda não foi preenchida pelo Lufe.</p>'}${refBlock}`;
   },
 
   banda() {
@@ -224,10 +229,10 @@ function tableCard(title, heads, rows, sheet, hint) {
 
 /* ---------- formulários de edição ---------- */
 const FORMS = {
-  Convidados: [['nome', 'Nome'], ['grupo', 'Família / grupo'], ['status', 'Status', ['pendente', 'confirmado', 'talvez', 'recusado']], ['bebe', 'Bebe álcool?', ['sim', 'nao']], ['criancas', 'Crianças (nº)'], ['observacoes', 'Observações'],
+  Convidados: [['nome', 'Nome'], ['grupo', 'Família / casal (agrupa quem dorme junto)'], ['status', 'Status', ['pendente', 'confirmado', 'talvez', 'recusado']], ['bebe', 'Bebe álcool?', ['sim', 'nao']], ['criancas', 'Crianças (nº)'], ['observacoes', 'Observações'],
                ['pago', 'Pago?', ['nao', 'sim'], 'pay'], ['valor_acordado', 'Valor acordado (R$, opcional)', null, 'pay'], ['valor_pago', 'Valor pago (R$)', null, 'pay'], ['data_pagamento', 'Data do pagamento (AAAA-MM-DD)', null, 'pay']],
   Acomodacoes: [['quarto', 'Quarto / local'], ['tipo', 'Tipo (casal, beliche, colchão…)'], ['capacidade', 'Capacidade'], ['ocupantes', 'Quem dorme aqui (separe por vírgula)'], ['observacoes', 'Observações']],
-  Cardapio: [['categoria', 'Categoria', ['Comida', 'Bebida alcoólica', 'Bebida sem álcool', 'Sobremesa', 'Descartáveis', 'Outros']], ['item', 'Item'], ['quantidade', 'Quantidade'], ['custo_estimado', 'Custo estimado (R$)'], ['status', 'Status', ['a comprar', 'comprado', 'fornecedor leva']], ['responsavel', 'Responsável']],
+  Cardapio: [['categoria', 'Categoria', ['Comida', 'Bebida alcoólica', 'Bebida sem álcool', 'Sobremesa', 'Descartáveis', 'Outros']], ['item', 'Item'], ['quantidade', 'Quantidade'], ['custo_estimado', 'Custo estimado (R$)'], ['status', 'Status', ['a comprar', 'comprado', 'fornecedor leva', 'ref. 2025']], ['responsavel', 'Responsável']],
   Fornecedores: [['tipo', 'Tipo', ['Churrasqueiro', 'Empresa de comida', 'Banda / dupla', 'Atividade', 'Garçom / ajudante', 'Limpeza', 'Outro']], ['nome', 'Nome'], ['contato', 'Contato (só organizadores veem)'], ['valor', 'Valor (R$)'], ['sinal_pago', 'Sinal pago (R$)'], ['status', 'Status', ['orçando', 'reservado', 'contratado', 'pago']], ['detalhes', 'Detalhes (horário, repertório, cardápio…)'], ['lista_ajudantes', 'Equipe / ajudantes']],
   Despesas: [['descricao', 'Descrição'], ['valor', 'Valor (R$)'], ['status', 'Status', ['a pagar', 'pago']], ['depositar_para', 'Depositar para'], ['data', 'Data'], ['obs', 'Obs.']]
 };
@@ -297,9 +302,9 @@ function mock(p) {
   let db = JSON.parse(store.get(KEY) || 'null');
   if (!db) {
     db = { config: { evento_titulo: 'Festa de Final de Ano do Zoo', data_evento: '2026-12-19', horario: 'A definir', local_nome: 'Sítio do Roque – Indaiatuba/SP', endereco: 'A definir', maps_url: '', traje: 'A definir', formato: 'A definir', mensagem: 'Dados fictícios de demonstração.', valor_bebe: '250', valor_nao_bebe: '150', prazo_pagamento: '', pix_tipo: 'A definir', pix_chave: '', pix_nome: '', pix_qr_url: '' },
-      convidados: ['Ana Exemplo', 'Bruno Exemplo', 'Carla Exemplo', 'Diego Exemplo', 'Eva Exemplo'].map((n, i) => ({ id: 'g' + i, nome: n, grupo: '', status: i < 2 ? 'confirmado' : 'pendente', bebe: i === 1 ? 'nao' : 'sim', criancas: i === 0 ? 1 : 0, observacoes: '', pago: '', valor_acordado: '', valor_pago: '', data_pagamento: '' })),
+      convidados: ['Ana Exemplo', 'Bruno Exemplo', 'Carla Exemplo', 'Diego Exemplo', 'Eva Exemplo'].map((n, i) => ({ id: 'g' + i, nome: n, grupo: i < 2 ? 'Casal Exemplo' : '', status: i < 2 ? 'confirmado' : 'pendente', bebe: i === 1 ? 'nao' : 'sim', criancas: i === 0 ? 1 : 0, observacoes: '', pago: '', valor_acordado: '', valor_pago: '', data_pagamento: '' })),
       acomodacoes: [{ id: 'a1', quarto: 'Quarto 1', tipo: 'casal', capacidade: 2, ocupantes: 'Ana Exemplo, Bruno Exemplo', observacoes: '' }],
-      cardapio: [{ id: 'c1', categoria: 'Comida', item: 'Picanha', quantidade: '3 peças', custo_estimado: '600', status: 'a comprar', responsavel: 'Lufe' }],
+      cardapio: [{ id: 'c1', categoria: 'Comida', item: 'Picanha', quantidade: '3 peças', custo_estimado: '600', status: 'a comprar', responsavel: 'Lufe' }, { id: 'c2', categoria: 'Ref. 2025 – Churrasco', item: 'Linguiça 3,0kg', quantidade: '', custo_estimado: '101.15', status: 'ref. 2025', responsavel: '' }],
       fornecedores: [{ id: 'f1', tipo: 'Banda / dupla', nome: 'Dupla Exemplo', contato: '', valor: '2000', sinal_pago: '', status: 'orçando', detalhes: 'Sertanejo universitário', lista_ajudantes: '' }],
       despesas: [{ id: 'd1', descricao: 'Sinal da dupla', valor: '500', status: 'a pagar', depositar_para: 'Tadeu', data: '', obs: '' }], caronas: [], pins: { lufe: 'lufe', marina: 'marina', vanessa: 'vanessa' }, code: 'demo' };
   }

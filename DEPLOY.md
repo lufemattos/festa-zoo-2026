@@ -35,7 +35,7 @@ Ambas se recusam a rodar de novo se já houver dados, para não duplicar.
 ## 4. Primeiro uso
 1. Abra o site, entre com o código de acesso e clique em **Sou organizador** com o seu PIN.
 2. **Configuração**: horário, endereço, link do mapa, traje, formato, valores por pessoa (com e sem álcool), prazo e Pix.
-3. A Vanessa revisa convidados, define famílias/casais e cadastra quartos.
+3. A Vanessa revisa convidados, define o perfil de cada um (Individual, Casal ou Família) e cadastra quartos.
 4. Lufe: transforme itens de referência em itens de 2026 (**Editar → trocar status**) e ajuste os custos.
 5. Teste cada perfil e um convidado fictício, e só então divulgue o link e o código no grupo.
 
@@ -47,7 +47,7 @@ Ambas se recusam a rodar de novo se já houver dados, para não duplicar.
 | Vanessa | Convidados (lista), acomodações, fornecedores/equipe |
 | Convidados | Só a própria resposta de presença e as próprias caronas |
 
-O campo **Família / casal** serve só para agrupar quem vai junto (ajuda a Vanessa a montar os quartos) e aparece ao lado do nome em **Quem vai**. Não altera valores.
+O campo **Perfil do convidado** (Individual, Casal ou Família) é um seletor que a Vanessa preenche em **Quem vai → Editar**. Aparece ao lado do nome em **Quem vai** e ajuda a montar os quartos. Não altera valores e não liga uma pessoa a outra.
 
 ## 6. Atualizar o site
 Mudanças de visual ou de funcionalidade: altere os arquivos do repositório (ou peça ao Claude) e o Pages publica sozinho em 1 a 2 minutos.

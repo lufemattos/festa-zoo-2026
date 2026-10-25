@@ -229,7 +229,7 @@ function tableCard(title, heads, rows, sheet, hint) {
 
 /* ---------- formulários de edição ---------- */
 const FORMS = {
-  Convidados: [['nome', 'Nome'], ['grupo', 'Família / casal (agrupa quem dorme junto)'], ['status', 'Status', ['pendente', 'confirmado', 'talvez', 'recusado']], ['bebe', 'Bebe álcool?', ['sim', 'nao']], ['criancas', 'Crianças (nº)'], ['observacoes', 'Observações'],
+  Convidados: [['nome', 'Nome'], ['grupo', 'Perfil do convidado', ['', 'Individual', 'Casal', 'Família']], ['status', 'Status', ['pendente', 'confirmado', 'talvez', 'recusado']], ['bebe', 'Bebe álcool?', ['sim', 'nao']], ['criancas', 'Crianças (nº)'], ['observacoes', 'Observações'],
                ['pago', 'Pago?', ['nao', 'sim'], 'pay'], ['valor_acordado', 'Valor acordado (R$, opcional)', null, 'pay'], ['valor_pago', 'Valor pago (R$)', null, 'pay'], ['data_pagamento', 'Data do pagamento (AAAA-MM-DD)', null, 'pay']],
   Acomodacoes: [['quarto', 'Quarto / local'], ['tipo', 'Tipo (casal, beliche, colchão…)'], ['capacidade', 'Capacidade'], ['ocupantes', 'Quem dorme aqui (separe por vírgula)'], ['observacoes', 'Observações']],
   Cardapio: [['categoria', 'Categoria', ['Comida', 'Bebida alcoólica', 'Bebida sem álcool', 'Sobremesa', 'Descartáveis', 'Outros']], ['item', 'Item'], ['quantidade', 'Quantidade'], ['custo_estimado', 'Custo estimado (R$)'], ['status', 'Status', ['a comprar', 'comprado', 'fornecedor leva', 'ref. 2025']], ['responsavel', 'Responsável']],
@@ -302,7 +302,7 @@ function mock(p) {
   let db = JSON.parse(store.get(KEY) || 'null');
   if (!db) {
     db = { config: { evento_titulo: 'Festa de Final de Ano do Zoo', data_evento: '2026-12-19', horario: 'A definir', local_nome: 'Sítio do Roque – Indaiatuba/SP', endereco: 'A definir', maps_url: '', traje: 'A definir', formato: 'A definir', mensagem: 'Dados fictícios de demonstração.', valor_bebe: '250', valor_nao_bebe: '150', prazo_pagamento: '', pix_tipo: 'A definir', pix_chave: '', pix_nome: '', pix_qr_url: '' },
-      convidados: ['Ana Exemplo', 'Bruno Exemplo', 'Carla Exemplo', 'Diego Exemplo', 'Eva Exemplo'].map((n, i) => ({ id: 'g' + i, nome: n, grupo: i < 2 ? 'Casal Exemplo' : '', status: i < 2 ? 'confirmado' : 'pendente', bebe: i === 1 ? 'nao' : 'sim', criancas: i === 0 ? 1 : 0, observacoes: '', pago: '', valor_acordado: '', valor_pago: '', data_pagamento: '' })),
+      convidados: ['Ana Exemplo', 'Bruno Exemplo', 'Carla Exemplo', 'Diego Exemplo', 'Eva Exemplo'].map((n, i) => ({ id: 'g' + i, nome: n, grupo: i < 2 ? 'Casal' : '', status: i < 2 ? 'confirmado' : 'pendente', bebe: i === 1 ? 'nao' : 'sim', criancas: i === 0 ? 1 : 0, observacoes: '', pago: '', valor_acordado: '', valor_pago: '', data_pagamento: '' })),
       acomodacoes: [{ id: 'a1', quarto: 'Quarto 1', tipo: 'casal', capacidade: 2, ocupantes: 'Ana Exemplo, Bruno Exemplo', observacoes: '' }],
       cardapio: [{ id: 'c1', categoria: 'Comida', item: 'Picanha', quantidade: '3 peças', custo_estimado: '600', status: 'a comprar', responsavel: 'Lufe' }, { id: 'c2', categoria: 'Ref. 2025 – Churrasco', item: 'Linguiça 3,0kg', quantidade: '', custo_estimado: '101.15', status: 'ref. 2025', responsavel: '' }],
       fornecedores: [{ id: 'f1', tipo: 'Banda / dupla', nome: 'Dupla Exemplo', contato: '', valor: '2000', sinal_pago: '', status: 'orçando', detalhes: 'Sertanejo universitário', lista_ajudantes: '' }],
